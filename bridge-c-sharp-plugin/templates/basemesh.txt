@@ -1,0 +1,10 @@
+{
+                        _class = "RenderMeshFile"
+                        filename = "$MESH"
+                        import_scale = 1.0
+                        import_filter = 
+                        {
+                            exclude_by_default = false
+                            exception_list = [  ]
+                        }
+                    },

@@ -85,4 +85,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>xcopy "$(ProjectDir)templates" "$(TargetDir)templates" /e /y /i /r</PreBuildEvent>
+  </PropertyGroup>
 </Project>
