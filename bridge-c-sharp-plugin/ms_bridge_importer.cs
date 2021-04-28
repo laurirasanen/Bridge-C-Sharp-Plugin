@@ -134,6 +134,10 @@ namespace bridge_c_sharp_plugin
 			asset.resolutionValue = int.Parse( ( string )objectList["resolutionValue"] );
 			asset.isCustom = ( bool )objectList["isCustom"];
 
+			// Helpers
+			string dirName = new DirectoryInfo(asset.path).Name;
+			asset.directoryName = dirName;
+
 			//Initializing asset component lists to avoid null reference error.
 			asset.textures = new List<Texture>();
 			asset.geometry = new List<Geometry>();
@@ -240,8 +244,7 @@ namespace bridge_c_sharp_plugin
 
 		static bool ExportAsset( Asset asset, out string location )
 		{
-			string dirName = new DirectoryInfo(asset.path).Name;
-			location = $@"{RunOptions.ProjectPath}/{RunOptions.ExportDirectory}/{asset.type}/{dirName}";
+			location = $@"{RunOptions.ProjectPath}/{RunOptions.ExportDirectory}/{asset.type}/{asset.directoryName.ToLower()}";
 
 			if ( CopyFiles( ref asset, location ) )
 			{
@@ -260,6 +263,16 @@ namespace bridge_c_sharp_plugin
 			else
 			{
 				Console.WriteLine( $"Failed to create vmat" );
+				return false;
+			}
+
+			if ( CreateVmdl( asset, out string vmdlLocation ) )
+			{
+				Console.WriteLine( $"Created vmdl {vmdlLocation}" );
+			}
+			else
+			{
+				Console.WriteLine( $"Failed to create vmdl" );
 				return false;
 			}
 
@@ -287,41 +300,128 @@ namespace bridge_c_sharp_plugin
 				Directory.CreateDirectory( $"{location}/textures" );
 			}
 
-			// Can't use ref inside lambdas
-			var assetPath = asset.path;
-
-			asset.geometry.ForEach( geometry =>
+			for ( int i = 0; i < asset.geometry.Count; i++ )
 			{
-				string destination = geometry.path.Replace( assetPath, $"{location}/geometry" );
+				Geometry geometry = asset.geometry[i];
+				string destination = geometry.path.Replace( asset.path, $"{location}/geometry" ).Replace(geometry.name, geometry.name.ToLower());
 				Console.WriteLine( $"Copying geometry {geometry.path} -> {destination}" );
 				File.Copy( geometry.path, destination, true );
 				geometry.path = destination;
-			} );
+				geometry.name = geometry.name.ToLower();
+				asset.geometry[i] = geometry;
+			}
 
-			asset.lodList.ForEach( lod =>
+			for ( int i = 0; i < asset.lodList.Count; i++ )
 			{
-				string destination = lod.path.Replace( assetPath, $"{location}/geometry" );
+				GeometryLOD lod = asset.lodList[i];
+				string destination = lod.path.Replace( asset.path, $"{location}/geometry" ).Replace(lod.name, lod.name.ToLower());
 				Console.WriteLine( $"Copying lod {lod.path} -> {destination}" );
 				File.Copy( lod.path, destination, true );
 				lod.path = destination;
-			} );
+				lod.name = lod.name.ToLower();
+				asset.lodList[i] = lod;
+			}
 
-			asset.textures.ForEach( texture =>
+			for ( int i = 0; i < asset.textures.Count; i++ )
 			{
-				string destination = texture.path.Replace( assetPath, $"{location}/textures" );
+				Texture texture = asset.textures[i];
+				string destination = texture.path.Replace( asset.path, $"{location}/textures" ).Replace(texture.name, texture.name.ToLower());
 				Console.WriteLine( $"Copying texture {texture.path} -> {destination}" );
 				File.Copy( texture.path, destination, true );
 				texture.path = destination;
-			} );
+				texture.name = texture.name.ToLower();
+				asset.textures[i] = texture;
+			}
 
 			asset.path = location;
+			asset.name = asset.name.ToLower();
+			asset.directoryName = asset.directoryName.ToLower();
+			asset.id = asset.id.ToLower();
 
 			return true;
 		}
 
 		static bool CreateVmat( Asset asset, out string vmatLocation )
 		{
-			vmatLocation = $@"{asset.path}/materials";
+			var vmatBase = @"templates/basematerial_vr_simple.vmat";
+			if ( asset.type == "3dplant" )
+			{
+				vmatBase = @"templates/basematerial_vr_complex.vmat";
+			}
+
+			vmatLocation = $@"{asset.path}/materials/";
+			Directory.CreateDirectory( vmatLocation );
+			vmatLocation += $"/{asset.id}.vmat";
+
+			// Get all used textures
+			string textureString = "";
+			asset.textures.ForEach( texture =>
+			{
+				var textureType = "";
+				switch ( texture.type )
+				{
+					case "albedo":
+						textureType = "TextureColor";
+						break;
+
+					case "normal":
+						textureType = "TextureNormal";
+						break;
+
+					case "opacity":
+						textureType = "TextureTranslucency";
+						break;
+
+					case "roughness":
+						textureType = "TextureRoughness";
+						break;
+
+					case "ao":
+						textureType = "TextureAmbientOcclusion";
+						break;
+
+					default:
+						Console.WriteLine( $"Unsupported texture type '{texture.type}', skipping" );
+						break;
+				}
+
+				if ( textureType.Length > 0 )
+				{
+					textureString += $"{textureType} \"{texture.path.Replace( RunOptions.ProjectPath + "/", "" ).Replace( '\\', '/' )}\"\n\t";
+				}
+			} );
+
+			// Write vmat
+			string vmat = File.ReadAllText(vmatBase);
+			vmat = vmat.Replace( "$TEXTURES", textureString );
+			File.WriteAllText( vmatLocation, vmat );
+
+			return true;
+		}
+
+		static bool CreateVmdl( Asset asset, out string vmdlLocation )
+		{
+			var vmdlBase = @"templates/basemodel.vmdl";
+			vmdlLocation = $@"{asset.path}/{asset.id}.vmdl";
+
+			var vmatLocation = $"{asset.path.Replace( RunOptions.ProjectPath + "/", "" ).Replace( '\\', '/' )}/materials/{asset.id}.vmat";
+			var baseLod = File.ReadAllText(@"templates/baselod.txt");
+			var baseMesh = File.ReadAllText(@"templates/basemesh.txt");
+			var lods = "";
+			var meshes = "";
+
+			for ( int i = 0; i < asset.lodList.Count; i++ )
+			{
+				lods += baseLod.Replace( "$THRESHOLD", ( i * 20 ).ToString() ).Replace( "$MESHNAME", $"unnamed_{i + 1}" ) + "\n\t\t\t\t\t";
+				meshes += baseMesh.Replace( "$MESH", $"{asset.lodList[i].path.Replace( RunOptions.ProjectPath + "/", "" ).Replace( '\\', '/' )}" ) + "\n\t\t\t\t\t";
+			}
+
+			// Write vmdl
+			string vmdl = File.ReadAllText(vmdlBase);
+			vmdl = vmdl.Replace( "$VMAT", vmatLocation );
+			vmdl = vmdl.Replace( "$LODS", lods );
+			vmdl = vmdl.Replace( "$MESHES", meshes );
+			File.WriteAllText( vmdlLocation, vmdl );
 
 			return true;
 		}

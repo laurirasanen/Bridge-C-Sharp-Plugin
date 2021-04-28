@@ -12,6 +12,7 @@ namespace bridge_c_sharp_plugin
 		public string type;
 		public string id;
 		public string name;
+		public string directoryName;
 		public string path;
 		public string textureMimeType;
 		public string averageColor;
