@@ -37,6 +37,7 @@ Main function is responsible for starting a thread that listens to the specified
 
 using Newtonsoft.Json.Linq;
 using System;
+using System.IO;
 using System.Collections.Generic;
 using CommandLine;
 
@@ -46,15 +47,17 @@ namespace bridge_c_sharp_plugin
 	{
 		public class Options
 		{
-			[Option( 'p', "project", Required = true, HelpText = "Project path to export assets to, e.g. \"C:/Program Files (x86)/Steam/steamapps/common/Half-Life Alyx/content/hlvr_addons/my_addon/\"" )]
+			[Option( 'p', "project", Required = true, HelpText = "Project path to export assets to, e.g. \"C:/Program Files (x86)/Steam/steamapps/common/Half-Life Alyx/content/hlvr_addons/my_addon\"" )]
 			public string ProjectPath { get; set; }
 
-			[Option( 'd', "directory", Required = false, Default = "/megascans", HelpText = "Directory to export assets to, relative to project root" )]
+			[Option( 'd', "directory", Required = false, Default = "megascans", HelpText = "Directory to export assets to, relative to project root" )]
 			public string ExportDirectory { get; set; }
 
-			[Option( 'l', "listen", Required = false, Default = 24981, HelpText = "The port to listen on" )]
+			[Option( 'l', "listen", Required = false, Default = 24981, HelpText = "The port to listen on, this should be the same as in Bridge" )]
 			public int ServerPort { get; set; }
 		}
+
+		static Options RunOptions;
 
 		static void Main( string[] args )
 		{
@@ -64,8 +67,14 @@ namespace bridge_c_sharp_plugin
 
 		static void Run( Options options )
 		{
+			RunOptions = options;
+
+			Console.WriteLine( $"Project: {RunOptions.ProjectPath}" );
+			Console.WriteLine( $"Export directory: {RunOptions.ExportDirectory}" );
+			Console.WriteLine( $"Port: {RunOptions.ServerPort}" );
+
 			//Starts the server in background.
-			Bridge_Server listener = new Bridge_Server(options.ServerPort);
+			Bridge_Server listener = new Bridge_Server(RunOptions.ServerPort);
 			listener.StartServer();
 
 			//New line will close the server and exit the console app.
@@ -92,9 +101,18 @@ namespace bridge_c_sharp_plugin
 				Console.WriteLine( "\nASSET" );
 				Console.WriteLine( "- - - - - - - -\n" );
 				Console.WriteLine( asset.ToString() );
-				Console.WriteLine( "- - - - - - - -" );
+				Console.WriteLine( "- - - - - - - -\n" );
 
-
+				if ( ExportAsset( asset, out string location ) )
+				{
+					Console.WriteLine( $"Exported to {location}\n" );
+					Console.WriteLine( "- - - - - - - -" );
+				}
+				else
+				{
+					Console.WriteLine( "FAILED TO EXPORT\n" );
+					Console.WriteLine( "- - - - - - - -" );
+				}
 			}
 		}
 
@@ -218,6 +236,94 @@ namespace bridge_c_sharp_plugin
 			}
 
 			return asset;
+		}
+
+		static bool ExportAsset( Asset asset, out string location )
+		{
+			string dirName = new DirectoryInfo(asset.path).Name;
+			location = $@"{RunOptions.ProjectPath}/{RunOptions.ExportDirectory}/{asset.type}/{dirName}";
+
+			if ( CopyFiles( ref asset, location ) )
+			{
+				Console.WriteLine( $"Copied files to {location}" );
+			}
+			else
+			{
+				Console.WriteLine( $"Failed to copy files" );
+				return false;
+			}
+
+			if ( CreateVmat( asset, out string vmatLocation ) )
+			{
+				Console.WriteLine( $"Created vmat {vmatLocation}" );
+			}
+			else
+			{
+				Console.WriteLine( $"Failed to create vmat" );
+				return false;
+			}
+
+			return true;
+		}
+
+		static bool CopyFiles( ref Asset asset, string location )
+		{
+			// Sanity
+			DirectoryInfo dir = new DirectoryInfo(asset.path);
+			if ( !dir.Exists )
+			{
+				Console.WriteLine( $"Could not find source directory {asset.path}" );
+				return false;
+			}
+
+			// Create destination directories
+			Directory.CreateDirectory( location );
+			if ( asset.geometry.Count > 0 )
+			{
+				Directory.CreateDirectory( $"{location}/geometry" );
+			}
+			if ( asset.textures.Count > 0 )
+			{
+				Directory.CreateDirectory( $"{location}/textures" );
+			}
+
+			// Can't use ref inside lambdas
+			var assetPath = asset.path;
+
+			asset.geometry.ForEach( geometry =>
+			{
+				string destination = geometry.path.Replace( assetPath, $"{location}/geometry" );
+				Console.WriteLine( $"Copying geometry {geometry.path} -> {destination}" );
+				File.Copy( geometry.path, destination, true );
+				geometry.path = destination;
+			} );
+
+			asset.lodList.ForEach( lod =>
+			{
+				string destination = lod.path.Replace( assetPath, $"{location}/geometry" );
+				Console.WriteLine( $"Copying lod {lod.path} -> {destination}" );
+				File.Copy( lod.path, destination, true );
+				lod.path = destination;
+			} );
+
+			asset.textures.ForEach( texture =>
+			{
+				string destination = texture.path.Replace( assetPath, $"{location}/textures" );
+				Console.WriteLine( $"Copying texture {texture.path} -> {destination}" );
+				File.Copy( texture.path, destination, true );
+				texture.path = destination;
+			} );
+
+			asset.path = location;
+
+			return true;
+		}
+
+		static bool CreateVmat( Asset asset, out string vmatLocation )
+		{
+			vmatLocation = $@"{asset.path}/materials";
+
+			return true;
 		}
 	}
 }
