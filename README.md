@@ -1,31 +1,59 @@
-# Bridge-C-Sharp-Plugin
-Quixel Megascans Bridge custom exports C# plugin sample. 
+# BridgeSource2Plugin
 
-Quixel AB - Megascans Project
+Plugin for exporting assets from Quixel Bridge to Source 2.  
+**Only tested with HL Alyx.**
 
-Quixel : https://quixel.se
+[![youtube demo video](http://img.youtube.com/vi/mxbicmO3Kug/0.jpg)](https://www.youtube.com/watch?v=mxbicmO3Kug)  
+[![update & asset sprayer demo](http://img.youtube.com/vi/_U26K0bTlmc/0.jpg)](https://www.youtube.com/watch?v=_U26K0bTlmc)
 
-## Bridge C# Plugin
+## Quixel
 
-The Bridge plugin is an open-source, C#-written integration for Bridge custom exports. The plugin requires .Net 4.0 or later.
+Note that Quixel Megascans is free to use only with Unreal Engine. Other applications (such as Source2 based games) will require a license. See [https://quixel.com/pricing](https://quixel.com/pricing) for details.
 
-This integration gives you a LiveLink between itself and Bridge Custom Exports. The source code is all exposed
-and documented for you to use it as you wish (within the Megascans EULA limits, that is).
-We provide a set of useful functions for importing json data from Bridge.
+## Features
 
-This integration was written in a threaded manner to allow the plugin to run in background.
+- Exporting geometry & textures
+- Automatic VMAT and VMDL creation
+- Automatic compiling of exported assets with `resourcecompiler.exe`
+- Automatic VMDL LOD setup from all exported LODs
+- Automatic .spray -prefab creation from assets with multiple variations
+- Option to specify shaders to use in materials
+- Option to change export scale of 3d assets
 
-If you're facing issues with and this documentation isn't helping you please let us know : support@quixel.se . We'll help you get things fixed ASAP.
+**Supported:**
 
-More information on Bridge custom exports can be found here:
-https://docs.google.com/document/d/14g6LsFS-pnPGdI-FiCsWpMIvpaCJUJweyJD9SgaOjAo/
+- Asset types (as seen in Bridge):
+  - 3D Assets (\* see note below)
+  - 3D Plants \*
+  - Surfaces
+  - Decals
+  - Atlases
+- Texture maps:
+  - Albedo
+  - Normal
+  - Roughness
+  - Ambient Occlusion
+  - Metalness
+  - Opacity
+  - Transmission
 
-## Example
+**Not supported:**
 
-This integration gives you an example method that reads the data from the json and prints the result on the console. 
+- Modular assets with multiple meshes in a single .fbx
+- Multiple materials (e.g. plants that have a separate billboard material for lowest LOD)
 
-## Notes:
+## Usage
 
-You must have .Net version 4.0 or higher.
-Download and Install .Net from: https://www.microsoft.com/net/download/
-Project was created with Visual Studio 2017. You can get it from: https://visualstudio.microsoft.com/vs/
+`BridgeSource2Plugin.exe --help`  
+See [releases tab](https://github.com/nullprop/BridgeSource2Plugin/releases) for a precompiled binary.
+
+## Bridge export settings
+
+- Export Target:
+  - `Export Target`: `Custom Socket Export`
+  - `Socket Port`: Same as the plugin, default: `24981`
+- Textures:
+  - `Format`: `TGA` (JPG tends to freeze Material Editor)
+- Models:
+  - `Megascans`: `FBX`
+  - `LODs`: However many you want, should get set up automatically in VMDL. See note above regarding billboard material support.
