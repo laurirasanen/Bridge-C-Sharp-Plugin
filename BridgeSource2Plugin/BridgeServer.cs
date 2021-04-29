@@ -5,19 +5,19 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 
-namespace bridge_c_sharp_plugin
+namespace BridgeSource2Plugin
 {
-	class Bridge_Server
+	class BridgeServer
 	{
 		private TcpListener tcpListener;
 		private Thread tcpListenerThread;
 		private TcpClient connectedTcpClient;
 
 		public List<string> receivedMessage = new List<string>();
-		//Port number to listen to. Please make sure it is the same in Bridge as well.
+		// Port number to listen to. Please make sure it is the same in Bridge as well.
 		public int MessageReceivingPort;
 
-		public Bridge_Server( int port )
+		public BridgeServer( int port )
 		{
 			MessageReceivingPort = port;
 		}
@@ -61,7 +61,7 @@ namespace bridge_c_sharp_plugin
 
 							if ( receivedMessage.Count > 0 )
 							{
-								ms_bridge_importer.AssetImporter( receivedMessage[0] );
+								BridgeImporter.AssetImporter( receivedMessage[0] );
 								receivedMessage.RemoveAt( 0 );
 							}
 						}

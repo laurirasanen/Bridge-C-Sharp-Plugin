@@ -27,13 +27,9 @@ We provide a set of useful functions for importing json data from Bridge.
 We've tried to document the code as much as we could, so if you're having any issues
 please send me an email (ajwad@quixel.se) for support.
 
-Main function is responsible for starting a thread that listens to the specified port (specified in Bridge_server.cs) for JSON data..
+Main function is responsible for starting a thread that listens to the specified port (specified in BridgeServer.cs) for JSON data..
 
 */
-
-
-
-
 
 using Newtonsoft.Json.Linq;
 using System;
@@ -41,9 +37,9 @@ using System.IO;
 using System.Collections.Generic;
 using CommandLine;
 
-namespace bridge_c_sharp_plugin
+namespace BridgeSource2Plugin
 {
-	class ms_bridge_importer
+	class BridgeImporter
 	{
 		public class Options
 		{
@@ -73,11 +69,11 @@ namespace bridge_c_sharp_plugin
 			Console.WriteLine( $"Export directory: {RunOptions.ExportDirectory}" );
 			Console.WriteLine( $"Port: {RunOptions.ServerPort}" );
 
-			//Starts the server in background.
-			Bridge_Server listener = new Bridge_Server(RunOptions.ServerPort);
+			// Starts the server in background.
+			BridgeServer listener = new BridgeServer(RunOptions.ServerPort);
 			listener.StartServer();
 
-			//New line will close the server and exit the console app.
+			// New line will close the server and exit the console app.
 			Console.ReadLine();
 			listener.EndServer();
 		}
@@ -86,7 +82,7 @@ namespace bridge_c_sharp_plugin
 		{
 			List<Asset> assets = new List<Asset>();
 
-			//Parsing JSON array for multiple assets.
+			// Parsing JSON array for multiple assets.
 			string jArray = jsonData;
 			JArray assetsJsonArray = JArray.Parse(jArray);
 			for ( int i = 0; i < assetsJsonArray.Count; ++i )
@@ -97,7 +93,7 @@ namespace bridge_c_sharp_plugin
 
 			foreach ( Asset asset in assets )
 			{
-				//Prints some values from the parsed json data.
+				// Prints some values from the parsed json data.
 				Console.WriteLine( "\nASSET" );
 				Console.WriteLine( "- - - - - - - -\n" );
 				Console.WriteLine( asset.ToString() );
@@ -120,7 +116,7 @@ namespace bridge_c_sharp_plugin
 		{
 			Asset asset = new Asset();
 
-			//Parsing asset properties.
+			// Parsing asset properties.
 			asset.name = ( string )objectList["name"];
 			asset.id = ( string )objectList["id"];
 			asset.type = ( string )objectList["type"];
@@ -138,14 +134,14 @@ namespace bridge_c_sharp_plugin
 			string dirName = new DirectoryInfo(asset.path).Name;
 			asset.directoryName = dirName;
 
-			//Initializing asset component lists to avoid null reference error.
+			// Initializing asset component lists to avoid null reference error.
 			asset.textures = new List<Texture>();
 			asset.geometry = new List<Geometry>();
 			asset.lodList = new List<GeometryLOD>();
 			asset.packedTextures = new List<PackedTextures>();
 			asset.meta = new List<MetaElement>();
 
-			//Parse and store geometry list.
+			// Parse and store geometry list.
 			JArray meshComps = (JArray)objectList["meshList"];
 			foreach ( JObject obj in meshComps )
 			{
@@ -158,7 +154,7 @@ namespace bridge_c_sharp_plugin
 				asset.geometry.Add( geo );
 			}
 
-			//Parse and store LOD list.
+			// Parse and store LOD list.
 			JArray lodComps = (JArray)objectList["lodList"];
 			foreach ( JObject obj in lodComps )
 			{
@@ -172,7 +168,7 @@ namespace bridge_c_sharp_plugin
 				asset.lodList.Add( geo );
 			}
 
-			//Parse and store meta data list.
+			// Parse and store meta data list.
 			JArray metaData = (JArray)objectList["meta"];
 			foreach ( JObject obj in metaData )
 			{
@@ -184,7 +180,7 @@ namespace bridge_c_sharp_plugin
 				asset.meta.Add( mElement );
 			}
 
-			//Parse and store textures list.
+			// Parse and store textures list.
 			JArray textureComps = (JArray)objectList["components"];
 			foreach ( JObject obj in textureComps )
 			{
@@ -198,7 +194,7 @@ namespace bridge_c_sharp_plugin
 				asset.textures.Add( tex );
 			}
 
-			//Parse and store channel packed textures list.
+			// Parse and store channel packed textures list.
 			JArray packedTextureComps = (JArray)objectList["packedTextures"];
 			foreach ( JObject obj in packedTextureComps )
 			{
@@ -223,7 +219,7 @@ namespace bridge_c_sharp_plugin
 				asset.packedTextures.Add( tex );
 			}
 
-			//Parse and store categories list.
+			// Parse and store categories list.
 			JArray categories = (JArray)objectList["categories"];
 			asset.categories = new string[categories.Count];
 			for ( int i = 0; i < categories.Count; ++i )
@@ -231,7 +227,7 @@ namespace bridge_c_sharp_plugin
 				asset.categories[i] = ( string )categories[i];
 			}
 
-			//Parse and store tags list.
+			// Parse and store tags list.
 			JArray tags = (JArray)objectList["tags"];
 			asset.tags = new string[tags.Count];
 			for ( int i = 0; i < tags.Count; ++i )

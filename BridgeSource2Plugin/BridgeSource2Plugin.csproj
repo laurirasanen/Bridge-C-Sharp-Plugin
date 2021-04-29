@@ -6,8 +6,8 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{138D1CF0-7D04-40DB-99B8-79267B559702}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>bridge_c_sharp_plugin</RootNamespace>
-    <AssemblyName>bridge-c-sharp-plugin</AssemblyName>
+    <RootNamespace>BridgeSource2Plugin</RootNamespace>
+    <AssemblyName>BridgeSource2Plugin</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -64,8 +64,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Asset.cs" />
-    <Compile Include="Bridge_Server.cs" />
-    <Compile Include="ms_bridge_importer.cs" />
+    <Compile Include="BridgeServer.cs" />
+    <Compile Include="BridgeImporter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Util.cs" />
   </ItemGroup>

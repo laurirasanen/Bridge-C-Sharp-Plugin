@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace bridge_c_sharp_plugin
+namespace BridgeSource2Plugin
 {
-	//This class represents the data structure of Bridge exported JSON.
+	// This class represents the data structure of Bridge exported JSON.
 	struct Asset
 	{
 		public string resolution;

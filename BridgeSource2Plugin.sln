@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.102
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "bridge-c-sharp-plugin", "bridge-c-sharp-plugin\bridge-c-sharp-plugin.csproj", "{138D1CF0-7D04-40DB-99B8-79267B559702}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BridgeSource2Plugin", "BridgeSource2Plugin\BridgeSource2Plugin.csproj", "{138D1CF0-7D04-40DB-99B8-79267B559702}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
