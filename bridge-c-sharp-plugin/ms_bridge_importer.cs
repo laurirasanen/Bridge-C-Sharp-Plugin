@@ -266,14 +266,17 @@ namespace bridge_c_sharp_plugin
 				return false;
 			}
 
-			if ( CreateVmdl( asset, out string vmdlLocation ) )
+			if ( asset.geometry.Count > 0 || asset.lodList.Count > 0 )
 			{
-				Console.WriteLine( $"Created vmdl {vmdlLocation}" );
-			}
-			else
-			{
-				Console.WriteLine( $"Failed to create vmdl" );
-				return false;
+				if ( CreateVmdl( asset, out string vmdlLocation ) )
+				{
+					Console.WriteLine( $"Created vmdl {vmdlLocation}" );
+				}
+				else
+				{
+					Console.WriteLine( $"Failed to create vmdl" );
+					return false;
+				}
 			}
 
 			return true;
