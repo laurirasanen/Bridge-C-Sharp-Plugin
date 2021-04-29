@@ -3,6 +3,8 @@
 Plugin for exporting assets from Quixel Bridge to Source 2.  
 **Only tested with HL Alyx.**
 
+[![youtube demo video](http://img.youtube.com/vi/mxbicmO3Kug/0.jpg)](https://www.youtube.com/watch?v=mxbicmO3Kug)
+
 ## Features
 
 - Exporting geometry & textures
@@ -47,7 +49,3 @@ See [releases tab](https://github.com/laurirasanen/BridgeSource2Plugin/releases)
 - Models:
   - `Megascans`: `FBX`
   - `LODs`: However many you want, should get set up automatically in VMDL. See note above regarding billboard material support.
-
-## Demo
-
-[![youtube demo video](http://img.youtube.com/vi/mxbicmO3Kug/0.jpg)](https://www.youtube.com/watch?v=mxbicmO3Kug)
