@@ -361,6 +361,7 @@ namespace bridge_c_sharp_plugin
 			var vmatString = $"shader \"{shader}\"\n";
 			bool enableOpacity = false;
 			bool enableMetalness = false;
+			bool enableTransmission = false;
 
 			// Get all used textures
 			asset.textures.ForEach( texture =>
@@ -394,6 +395,11 @@ namespace bridge_c_sharp_plugin
 						enableMetalness = true;
 						break;
 
+					case "transmission":
+						textureType = "TextureTranslucency";
+						enableTransmission = true;
+						break;
+
 					default:
 						Console.WriteLine( $"Unsupported texture type '{texture.type}', skipping" );
 						break;
@@ -417,6 +423,11 @@ namespace bridge_c_sharp_plugin
 			{
 				vmatString += "F_METALNESS_TEXTURE 1\n";
 				vmatString += "F_SPECULAR 1\n";
+			}
+
+			if ( enableTransmission )
+			{
+				vmatString += "F_TRANSLUCENT 1\n";
 			}
 
 			// Indent
