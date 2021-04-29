@@ -300,10 +300,13 @@ namespace bridge_c_sharp_plugin
 				Directory.CreateDirectory( $"{location}/textures" );
 			}
 
+			// TODO: remove repetition
 			for ( int i = 0; i < asset.geometry.Count; i++ )
 			{
 				Geometry geometry = asset.geometry[i];
-				string destination = geometry.path.Replace( asset.path, $"{location}/geometry" ).Replace(geometry.name, geometry.name.ToLower());
+				string destination = geometry.path.Replace( asset.path, $"{location}/geometry" );
+				destination = Util.SanitizeProjectPath( destination, RunOptions.ProjectPath );
+				Directory.CreateDirectory( Path.GetDirectoryName( destination ) );
 				Console.WriteLine( $"Copying geometry {geometry.path} -> {destination}" );
 				File.Copy( geometry.path, destination, true );
 				geometry.path = destination;
@@ -314,7 +317,9 @@ namespace bridge_c_sharp_plugin
 			for ( int i = 0; i < asset.lodList.Count; i++ )
 			{
 				GeometryLOD lod = asset.lodList[i];
-				string destination = lod.path.Replace( asset.path, $"{location}/geometry" ).Replace(lod.name, lod.name.ToLower());
+				string destination = lod.path.Replace( asset.path, $"{location}/geometry" );
+				destination = Util.SanitizeProjectPath( destination, RunOptions.ProjectPath );
+				Directory.CreateDirectory( Path.GetDirectoryName( destination ) );
 				Console.WriteLine( $"Copying lod {lod.path} -> {destination}" );
 				File.Copy( lod.path, destination, true );
 				lod.path = destination;
@@ -325,7 +330,9 @@ namespace bridge_c_sharp_plugin
 			for ( int i = 0; i < asset.textures.Count; i++ )
 			{
 				Texture texture = asset.textures[i];
-				string destination = texture.path.Replace( asset.path, $"{location}/textures" ).Replace(texture.name, texture.name.ToLower());
+				string destination = texture.path.Replace( asset.path, $"{location}/textures" );
+				destination = Util.SanitizeProjectPath( destination, RunOptions.ProjectPath );
+				Directory.CreateDirectory( Path.GetDirectoryName( destination ) );
 				Console.WriteLine( $"Copying texture {texture.path} -> {destination}" );
 				File.Copy( texture.path, destination, true );
 				texture.path = destination;
@@ -343,18 +350,16 @@ namespace bridge_c_sharp_plugin
 
 		static bool CreateVmat( Asset asset, out string vmatLocation )
 		{
-			var vmatBase = @"templates/basematerial_vr_simple.vmat";
-			if ( asset.type == "3dplant" )
-			{
-				vmatBase = @"templates/basematerial_vr_complex.vmat";
-			}
-
 			vmatLocation = $@"{asset.path}/materials/";
 			Directory.CreateDirectory( vmatLocation );
 			vmatLocation += $"/{asset.id}.vmat";
 
+			var shader = "vr_complex.vfx"; // TODO: non-vr games
+			var vmatString = $"shader \"{shader}\"\n";
+			bool enableOpacity = false;
+			bool enableMetalness = false;
+
 			// Get all used textures
-			string textureString = "";
 			asset.textures.ForEach( texture =>
 			{
 				var textureType = "";
@@ -370,6 +375,7 @@ namespace bridge_c_sharp_plugin
 
 					case "opacity":
 						textureType = "TextureTranslucency";
+						enableOpacity = true;
 						break;
 
 					case "roughness":
@@ -380,6 +386,11 @@ namespace bridge_c_sharp_plugin
 						textureType = "TextureAmbientOcclusion";
 						break;
 
+					case "metalness":
+						textureType = "TextureMetalness";
+						enableMetalness = true;
+						break;
+
 					default:
 						Console.WriteLine( $"Unsupported texture type '{texture.type}', skipping" );
 						break;
@@ -387,14 +398,32 @@ namespace bridge_c_sharp_plugin
 
 				if ( textureType.Length > 0 )
 				{
-					textureString += $"{textureType} \"{texture.path.Replace( RunOptions.ProjectPath + "/", "" ).Replace( '\\', '/' )}\"\n\t";
+					vmatString += $"{textureType} \"{texture.path.Replace( RunOptions.ProjectPath + "/", "" ).Replace( '\\', '/' )}\"\n";
 				}
 			} );
 
-			// Write vmat
-			string vmat = File.ReadAllText(vmatBase);
-			vmat = vmat.Replace( "$TEXTURES", textureString );
-			File.WriteAllText( vmatLocation, vmat );
+			if ( enableOpacity )
+			{
+				vmatString += "F_ALPHA_TEST 1\n";
+				vmatString += "g_flAlphaTestReference \"0.500\"\n";
+				vmatString += "g_flAntiAliasedEdgeStrength \"1.000\"\n";
+				vmatString += "F_RENDER_BACKFACES 1\n";
+			}
+
+			if ( enableMetalness )
+			{
+				vmatString += "F_METALNESS_TEXTURE 1\n";
+				vmatString += "F_SPECULAR 1\n";
+			}
+
+			// Indent
+			var lines = new List<string>(vmatString.Split('\n'));
+			vmatString = "Layer0\n{\n";
+			lines.ForEach( line => vmatString += $"\t{line}\n" );
+			vmatString += "}";
+
+			// Write
+			File.WriteAllText( vmatLocation, vmatString );
 
 			return true;
 		}
