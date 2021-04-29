@@ -358,10 +358,15 @@ namespace bridge_c_sharp_plugin
 			vmatLocation += $"/{asset.id}.vmat";
 
 			var shader = "vr_complex.vfx"; // TODO: non-vr games
+			if ( asset.type == "atlas" )
+			{
+				shader = "vr_projected_decals.vfx";
+			}
 			var vmatString = $"shader \"{shader}\"\n";
 			bool enableOpacity = false;
 			bool enableMetalness = false;
 			bool enableTransmission = false;
+			bool enableNormal = false;
 
 			// Get all used textures
 			asset.textures.ForEach( texture =>
@@ -375,6 +380,7 @@ namespace bridge_c_sharp_plugin
 
 					case "normal":
 						textureType = "TextureNormal";
+						enableNormal = true;
 						break;
 
 					case "opacity":
@@ -416,7 +422,10 @@ namespace bridge_c_sharp_plugin
 				vmatString += "F_ALPHA_TEST 1\n";
 				vmatString += "g_flAlphaTestReference \"0.500\"\n";
 				vmatString += "g_flAntiAliasedEdgeStrength \"1.000\"\n";
-				vmatString += "F_RENDER_BACKFACES 1\n";
+				if ( asset.type != "atlas" )
+				{
+					vmatString += "F_RENDER_BACKFACES 1\n";
+				}
 			}
 
 			if ( enableMetalness )
@@ -428,6 +437,11 @@ namespace bridge_c_sharp_plugin
 			if ( enableTransmission )
 			{
 				vmatString += "F_TRANSLUCENT 1\n";
+			}
+
+			if ( enableNormal )
+			{
+				vmatString += "F_NORMAL_MAP 1\n";
 			}
 
 			// Indent
