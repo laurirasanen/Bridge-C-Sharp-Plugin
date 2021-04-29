@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace bridge_c_sharp_plugin
+namespace BridgeSource2Plugin
 {
 	static class Util
 	{
