@@ -364,6 +364,9 @@ namespace BridgeSource2Plugin
 			bool enableTransmission = false;
 			bool enableNormal = false;
 
+			// Enable specular by default
+			vmatString += "F_SPECULAR 1\n";
+
 			// Get all used textures
 			asset.textures.ForEach( texture =>
 			{
@@ -427,7 +430,6 @@ namespace BridgeSource2Plugin
 			if ( enableMetalness )
 			{
 				vmatString += "F_METALNESS_TEXTURE 1\n";
-				vmatString += "F_SPECULAR 1\n";
 			}
 
 			if ( enableTransmission )
