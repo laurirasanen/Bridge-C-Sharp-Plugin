@@ -51,6 +51,12 @@ namespace BridgeSource2Plugin
 
 			[Option( 'l', "listen", Required = false, Default = 24981, HelpText = "The port to listen on, this should be the same as in Bridge" )]
 			public int ServerPort { get; set; }
+
+			[Option( "shader", Required = false, Default = "vr_complex.vfx", HelpText = "The shader used for 3D assets and surfaces" )]
+			public string Shader { get; set; }
+
+			[Option( "decal-shader", Required = false, Default = "vr_projected_decals.vfx", HelpText = "The shader used for decals and atlases" )]
+			public string DecalShader { get; set; }
 		}
 
 		static Options RunOptions;
@@ -353,10 +359,10 @@ namespace BridgeSource2Plugin
 			Directory.CreateDirectory( vmatLocation );
 			vmatLocation += $"/{asset.id}.vmat";
 
-			var shader = "vr_complex.vfx"; // TODO: non-vr games
+			var shader = RunOptions.Shader;
 			if ( asset.type == "atlas" )
 			{
-				shader = "vr_projected_decals.vfx";
+				shader = RunOptions.DecalShader;
 			}
 			var vmatString = $"shader \"{shader}\"\n";
 			bool enableOpacity = false;
