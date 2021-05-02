@@ -126,10 +126,10 @@ namespace BridgeSource2Plugin
 				var reason = "";
 				asset.meta.ForEach( meta =>
 				{
-					if ( meta.key == "splitSubmeshes" && ( bool )meta.value == true )
+					if ( meta.key == "splitSubmeshes" && ( bool )meta.value == false )
 					{
 						supported = false;
-						reason = "Asset has multiple meshes in a single .fbx, this is not supported.";
+						reason = "Asset has multiple meshes in a single file, this is not supported.";
 						return;
 					}
 				} );
