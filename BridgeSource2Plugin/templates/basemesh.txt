@@ -1,7 +1,7 @@
 {
                         _class = "RenderMeshFile"
                         filename = "$MESH"
-                        import_scale = 1.0
+                        import_scale = $SCALE
                         import_filter = 
                         {
                             exclude_by_default = false
