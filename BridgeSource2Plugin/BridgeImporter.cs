@@ -36,6 +36,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using CommandLine;
+using System.Text.RegularExpressions;
 
 namespace BridgeSource2Plugin
 {
@@ -326,9 +327,9 @@ namespace BridgeSource2Plugin
 				return false;
 			}
 
-			if ( asset.geometry.Count > 0 || asset.lodList.Count > 0 )
+			for ( int i = 0; i < asset.geometry.Count; i++ )
 			{
-				if ( CreateVmdl( asset, out string vmdlLocation ) )
+				if ( CreateVmdl( asset, i, out string vmdlLocation ) )
 				{
 					Console.WriteLine( $"Created vmdl {vmdlLocation}" );
 					if ( RunOptions.AutoCompile )
@@ -530,21 +531,45 @@ namespace BridgeSource2Plugin
 			return true;
 		}
 
-		static bool CreateVmdl( Asset asset, out string vmdlLocation )
+		static bool CreateVmdl( Asset asset, int geometryIndex, out string vmdlLocation )
 		{
 			var vmdlBase = @"templates/basemodel.vmdl";
-			vmdlLocation = $@"{asset.path}/{asset.id}.vmdl";
-
 			var vmatLocation = $"{asset.path.Replace( RunOptions.ProjectPath + "/", "" ).Replace( '\\', '/' )}/materials/{asset.id}.vmat";
+
+			if ( asset.geometry.Count == 1 )
+			{
+				vmdlLocation = $@"{asset.path}/{asset.id}.vmdl";
+			}
+			else
+			{
+				vmdlLocation = $@"{asset.path}/{asset.id}_var{geometryIndex + 1}.vmdl";
+			}
+
 			var baseLod = File.ReadAllText(@"templates/baselod.txt");
 			var baseMesh = File.ReadAllText(@"templates/basemesh.txt");
 			var lods = "";
 			var meshes = "";
+			var lodCount = 0;
+
+			var geometryName = asset.geometry[geometryIndex].name;
+			// Remove LOD[0-9].fbx from name
+			if ( new Regex( $"lod[0-9].fbx$" ).Match( geometryName ).Success )
+			{
+				geometryName = geometryName.Remove( geometryName.Length - 9 );
+			}
 
 			for ( int i = 0; i < asset.lodList.Count; i++ )
 			{
-				lods += baseLod.Replace( "$THRESHOLD", ( i * 20 ).ToString() ).Replace( "$MESHNAME", $"unnamed_{i + 1}" ) + "\n\t\t\t\t\t";
+				// Don't include lods for other geometries
+				if ( !asset.lodList[i].name.Contains( geometryName ) )
+				{
+					Console.WriteLine( $"not including: {asset.lodList[i].name} - {geometryName}" );
+					continue;
+				}
+
+				lods += baseLod.Replace( "$THRESHOLD", ( lodCount * 20 ).ToString() ).Replace( "$MESHNAME", $"unnamed_{lodCount + 1}" ) + "\n\t\t\t\t\t";
 				meshes += baseMesh.Replace( "$MESH", $"{asset.lodList[i].path.Replace( RunOptions.ProjectPath + "/", "" ).Replace( '\\', '/' )}" ) + "\n\t\t\t\t\t";
+				lodCount++;
 			}
 
 			// Write vmdl
