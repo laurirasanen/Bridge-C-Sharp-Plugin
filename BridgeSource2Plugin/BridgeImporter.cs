@@ -52,6 +52,9 @@ namespace BridgeSource2Plugin
 			[Option( 'l', "listen", Required = false, Default = 24981, HelpText = "The port to listen on, this should be the same as in Bridge" )]
 			public int ServerPort { get; set; }
 
+			[Option( "no-clean", Required = false, Default = false, HelpText = "Keep unsupported textures after export" )]
+			public bool NoClean { get; set; }
+
 			[Option( "shader", Required = false, Default = "vr_complex.vfx", HelpText = "The shader used for 3D assets and surfaces" )]
 			public string Shader { get; set; }
 
@@ -412,7 +415,15 @@ namespace BridgeSource2Plugin
 						break;
 
 					default:
-						Console.WriteLine( $"Unsupported texture type '{texture.type}', skipping" );
+						if ( RunOptions.NoClean )
+						{
+							Console.WriteLine( $"Unsupported texture type '{texture.type}', skipping in vmat" );
+						}
+						else
+						{
+							Console.WriteLine( $"Unsupported texture type '{texture.type}', removing. Pass --no-clean to keep" );
+							File.Delete( texture.path );
+						}
 						break;
 				}
 
