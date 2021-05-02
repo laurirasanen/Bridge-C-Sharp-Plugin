@@ -56,6 +56,9 @@ namespace BridgeSource2Plugin
 			[Option( 'a', "auto-compile", Required = false, Default = true, HelpText = "Attempt to auto-compile exported assets with resourcecompiler.exe" )]
 			public bool AutoCompile { get; set; }
 
+			[Option( 's', "scale", Required = false, Default = 0.4f, HelpText = "Import scale of 3D objects, default 1m = 40 hammer units" )]
+			public float Scale { get; set; }
+
 			[Option( "no-clean", Required = false, Default = false, HelpText = "Keep unsupported textures after export" )]
 			public bool NoClean { get; set; }
 
@@ -567,8 +570,14 @@ namespace BridgeSource2Plugin
 					continue;
 				}
 
-				lods += baseLod.Replace( "$THRESHOLD", ( lodCount * 20 ).ToString() ).Replace( "$MESHNAME", $"unnamed_{lodCount + 1}" ) + "\n\t\t\t\t\t";
-				meshes += baseMesh.Replace( "$MESH", $"{asset.lodList[i].path.Replace( RunOptions.ProjectPath + "/", "" ).Replace( '\\', '/' )}" ) + "\n\t\t\t\t\t";
+				lods += baseLod
+					.Replace( "$THRESHOLD", ( lodCount * 20 ).ToString() )
+					.Replace( "$MESHNAME", $"unnamed_{lodCount + 1}" ) +
+					"\n\t\t\t\t\t";
+				meshes += baseMesh
+					.Replace( "$SCALE", RunOptions.Scale.ToString().Replace( ',', '.' ) )
+					.Replace( "$MESH", $"{asset.lodList[i].path.Replace( RunOptions.ProjectPath + "/", "" ).Replace( '\\', '/' )}" ) +
+					"\n\t\t\t\t\t";
 				lodCount++;
 			}
 
