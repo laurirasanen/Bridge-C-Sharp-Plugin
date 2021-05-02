@@ -1,5 +1,8 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.IO;
+using System.Diagnostics;
+using System;
 
 namespace BridgeSource2Plugin
 {
@@ -40,6 +43,78 @@ namespace BridgeSource2Plugin
 			} );
 
 			return sanPath;
+		}
+
+		public static bool GetGameRoot( string projectPath, out string root )
+		{
+			var parts = projectPath.Split('/');
+			string gamePath = "";
+
+			var pastCommon = false;
+			var found = false;
+			foreach ( var part in parts )
+			{
+				if ( pastCommon )
+				{
+					gamePath += part;
+					found = true;
+					break;
+				}
+				else
+				{
+					gamePath += $"{part}/";
+					if ( part == "common" )
+					{
+						pastCommon = true;
+					}
+				}
+			}
+
+			root = gamePath;
+
+			return found;
+		}
+
+		public static bool FindInGameDir( string searchPattern, string projectPath, out string foundPath )
+		{
+			foundPath = "";
+
+			if ( !GetGameRoot( projectPath, out string gamePath ) )
+			{
+				return false;
+			}
+
+			var files = Directory.GetFiles( gamePath, searchPattern, SearchOption.AllDirectories );
+			if ( files.Length > 0 )
+			{
+				foundPath = files[0];
+				return true;
+			}
+
+			return false;
+		}
+
+		public static bool CompileResource( string path, BridgeImporter.Options options )
+		{
+			if ( FindInGameDir( "resourcecompiler.exe", options.ProjectPath, out string compilerPath ) )
+			{
+				Console.WriteLine( $"Compiling {path}\n" );
+				var proc = new Process();
+				proc.StartInfo.FileName = compilerPath;
+				proc.StartInfo.Arguments = $"-i \"{path}\"";
+				proc.StartInfo.UseShellExecute = false;
+				proc.StartInfo.RedirectStandardOutput = true;
+
+				proc.Start();
+				var output = proc.StandardOutput.ReadToEnd();
+				proc.WaitForExit();
+
+				Console.WriteLine( output );
+				return proc.ExitCode == 0;
+			}
+
+			Console.WriteLine( "Failed to find resourcecompiler.exe" );
+			return false;
 		}
 	}
 }
