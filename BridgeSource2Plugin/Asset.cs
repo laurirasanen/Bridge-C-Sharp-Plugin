@@ -145,7 +145,7 @@ namespace BridgeSource2Plugin
 
 		public override string ToString()
 		{
-			return $" {name}:\n  key: {key}\n  value: {value.ToString()}";
+			return $" {name}:\n  key: {key}\n  value: {value}";
 		}
 	}
 }

@@ -63,6 +63,12 @@ namespace BridgeSource2Plugin
 
 			[Option( "decal-shader", Required = false, Default = "vr_projected_decals.vfx", HelpText = "The shader used for decals and atlases" )]
 			public string DecalShader { get; set; }
+
+			[Option( "debug", Required = false, Default = false, HelpText = "Print asset info and don't export" )]
+			public bool Debug { get; set; }
+
+			[Option( "ignore-support", Required = false, Default = false, HelpText = "Ignore asset support, export anyway" )]
+			public bool IgnoreSupport { get; set; }
 		}
 
 		static Options RunOptions;
@@ -81,6 +87,11 @@ namespace BridgeSource2Plugin
 			Console.WriteLine( $"Project: {RunOptions.ProjectPath}" );
 			Console.WriteLine( $"Export directory: {RunOptions.ExportDirectory}" );
 			Console.WriteLine( $"Port: {RunOptions.ServerPort}" );
+
+			if ( RunOptions.Debug )
+			{
+				Console.WriteLine( "--debug passed, assets will not be exported" );
+			}
 
 			// Starts the server in background.
 			BridgeServer listener = new BridgeServer(RunOptions.ServerPort);
@@ -106,11 +117,38 @@ namespace BridgeSource2Plugin
 
 			foreach ( Asset asset in assets )
 			{
-				// Prints some values from the parsed json data.
-				Console.WriteLine( "\nASSET" );
-				Console.WriteLine( "- - - - - - - -\n" );
-				Console.WriteLine( asset.ToString() );
-				Console.WriteLine( "- - - - - - - -\n" );
+				if ( RunOptions.Debug )
+				{
+					Console.WriteLine( asset.ToString() );
+				}
+
+				var supported = true;
+				var reason = "";
+				asset.meta.ForEach( meta =>
+				{
+					if ( meta.key == "splitSubmeshes" && ( bool )meta.value == true )
+					{
+						supported = false;
+						reason = "Asset has multiple meshes in a single .fbx, this is not supported.";
+						return;
+					}
+				} );
+
+				if ( !supported && !RunOptions.IgnoreSupport )
+				{
+					Console.WriteLine( $"Skipping asset: {reason}" );
+					Console.WriteLine( "Pass --ignore-support to export anyway" );
+					continue;
+				}
+				else if ( RunOptions.IgnoreSupport )
+				{
+					Console.WriteLine( $"Warn: {reason}" );
+				}
+
+				if ( RunOptions.Debug )
+				{
+					continue;
+				}
 
 				if ( ExportAsset( asset, out string location ) )
 				{
@@ -188,7 +226,16 @@ namespace BridgeSource2Plugin
 				MetaElement mElement = new MetaElement();
 				mElement.name = ( string )obj["name"];
 				mElement.key = ( string )obj["key"];
-				mElement.value = obj["value"];
+
+				// Something weird is happening with booleans
+				if ( obj["value"].Type == JTokenType.Boolean )
+				{
+					mElement.value = ( bool )obj["value"];
+				}
+				else
+				{
+					mElement.value = ( object )obj["value"];
+				}
 
 				asset.meta.Add( mElement );
 			}
