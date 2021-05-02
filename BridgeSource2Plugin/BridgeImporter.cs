@@ -52,6 +52,9 @@ namespace BridgeSource2Plugin
 			[Option( 'l', "listen", Required = false, Default = 24981, HelpText = "The port to listen on, this should be the same as in Bridge" )]
 			public int ServerPort { get; set; }
 
+			[Option( 'a', "auto-compile", Required = false, Default = true, HelpText = "Attempt to auto-compile exported assets with resourcecompiler.exe" )]
+			public bool AutoCompile { get; set; }
+
 			[Option( "no-clean", Required = false, Default = false, HelpText = "Keep unsupported textures after export" )]
 			public bool NoClean { get; set; }
 
@@ -73,6 +76,7 @@ namespace BridgeSource2Plugin
 		static void Run( Options options )
 		{
 			RunOptions = options;
+			RunOptions.ProjectPath = RunOptions.ProjectPath.Replace( '\\', '/' );
 
 			Console.WriteLine( $"Project: {RunOptions.ProjectPath}" );
 			Console.WriteLine( $"Export directory: {RunOptions.ExportDirectory}" );
@@ -264,6 +268,10 @@ namespace BridgeSource2Plugin
 			if ( CreateVmat( asset, out string vmatLocation ) )
 			{
 				Console.WriteLine( $"Created vmat {vmatLocation}" );
+				if ( RunOptions.AutoCompile )
+				{
+					Util.CompileResource( vmatLocation, RunOptions );
+				}
 			}
 			else
 			{
@@ -276,6 +284,10 @@ namespace BridgeSource2Plugin
 				if ( CreateVmdl( asset, out string vmdlLocation ) )
 				{
 					Console.WriteLine( $"Created vmdl {vmdlLocation}" );
+					if ( RunOptions.AutoCompile )
+					{
+						Util.CompileResource( vmdlLocation, RunOptions );
+					}
 				}
 				else
 				{
