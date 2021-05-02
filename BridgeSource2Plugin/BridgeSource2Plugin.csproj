@@ -89,4 +89,7 @@
   <PropertyGroup>
     <PreBuildEvent>xcopy "$(ProjectDir)templates" "$(TargetDir)templates" /e /y /i /r</PreBuildEvent>
   </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>xcopy "$(SolutionDir)README.md" "$(TargetDir)" /y /i</PostBuildEvent>
+  </PropertyGroup>
 </Project>
