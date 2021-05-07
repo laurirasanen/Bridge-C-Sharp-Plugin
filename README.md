@@ -3,7 +3,8 @@
 Plugin for exporting assets from Quixel Bridge to Source 2.  
 **Only tested with HL Alyx.**
 
-[![youtube demo video](http://img.youtube.com/vi/mxbicmO3Kug/0.jpg)](https://www.youtube.com/watch?v=mxbicmO3Kug)
+[![youtube demo video](http://img.youtube.com/vi/mxbicmO3Kug/0.jpg)](https://www.youtube.com/watch?v=mxbicmO3Kug)  
+[![update & asset sprayer demo](http://img.youtube.com/vi/_U26K0bTlmc/0.jpg)](https://www.youtube.com/watch?v=_U26K0bTlmc)
 
 ## Features
 
