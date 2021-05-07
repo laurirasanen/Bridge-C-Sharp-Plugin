@@ -8,14 +8,18 @@ Plugin for exporting assets from Quixel Bridge to Source 2.
 ## Features
 
 - Exporting geometry & textures
-- Automatic VMAT and VMDL creation (need manual compile after export)
+- Automatic VMAT and VMDL creation
+- Automatic compiling of exported assets with `resourcecompiler.exe`
 - Automatic VMDL LOD setup from all exported LODs
+- Automatic .spray -prefab creation from assets with multiple variations
+- Option to specify shaders to use in materials
+- Option to change export scale of 3d assets
 
 **Supported:**
 
 - Asset types (as seen in Bridge):
-  - 3D Assets
-  - 3D Plants (\* see notes below)
+  - 3D Assets (\* see note below)
+  - 3D Plants \*
   - Surfaces
   - Decals
   - Atlases
@@ -30,9 +34,8 @@ Plugin for exporting assets from Quixel Bridge to Source 2.
 
 **Not supported:**
 
-- Models with multiple variations (e.g. most plants)
+- Modular assets with multiple meshes in a single .fbx
 - Multiple materials (e.g. plants that have a separate billboard material for lowest LOD)
-- Different shaders, defaults to `vr_complex.vfx` or `vr_projected_decals.vfx` depending on asset type
 
 ## Usage
 
