@@ -1,0 +1,15 @@
+<!-- kv3 encoding:text:version{e21c7f3c-8a33-41c5-9977-a76d3a32aa0d} format:generic:version{7412167c-06e9-4698-aff2-e63eb59037e7} -->
+{
+	m_nCounterMin = 4
+	m_nCounterMax = 4
+	m_flSpacing = 64.0
+	m_flRadius = 128.0
+	m_flEraseAmount = 1.0
+	m_bConstantDensity = true
+	m_bOnlyHitMeshes = false
+	m_bRadialFalloff = true
+	m_elements = 
+	[
+$ELEMENTS
+	]
+}

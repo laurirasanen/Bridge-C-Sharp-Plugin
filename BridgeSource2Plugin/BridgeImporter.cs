@@ -35,6 +35,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Linq;
 using CommandLine;
 using System.Text.RegularExpressions;
 
@@ -58,6 +59,9 @@ namespace BridgeSource2Plugin
 
 			[Option( 's', "scale", Required = false, Default = 0.4f, HelpText = "Import scale of 3D objects, default 1m = 40 hammer units" )]
 			public float Scale { get; set; }
+
+			[Option( "spray-tags", Required = false, Default = new string[] { "3dplant", "scatter" }, HelpText = "Tags or categories that will automatically create a .spray asset on export" )]
+			public string[] SprayTags { get; set; }
 
 			[Option( "no-clean", Required = false, Default = false, HelpText = "Keep unsupported textures after export" )]
 			public bool NoClean { get; set; }
@@ -347,6 +351,20 @@ namespace BridgeSource2Plugin
 				}
 			}
 
+			var exportSpray = asset.tags.Intersect( RunOptions.SprayTags ).Any() || asset.categories.Intersect( RunOptions.SprayTags ).Any();
+			if ( exportSpray && asset.geometry.Count > 0 )
+			{
+				if ( CreateSpray( asset, out string sprayLocation ) )
+				{
+					Console.WriteLine( $"Created spray {sprayLocation}" );
+				}
+				else
+				{
+					Console.WriteLine( "Failed to create spray" );
+					return false;
+				}
+			}
+
 			return true;
 		}
 
@@ -566,7 +584,7 @@ namespace BridgeSource2Plugin
 				// Don't include lods for other geometries
 				if ( !asset.lodList[i].name.Contains( geometryName ) )
 				{
-					Console.WriteLine( $"not including: {asset.lodList[i].name} - {geometryName}" );
+					//Console.WriteLine( $"not including: {asset.lodList[i].name} - {geometryName}" );
 					continue;
 				}
 
@@ -587,6 +605,41 @@ namespace BridgeSource2Plugin
 			vmdl = vmdl.Replace( "$LODS", lods );
 			vmdl = vmdl.Replace( "$MESHES", meshes );
 			File.WriteAllText( vmdlLocation, vmdl );
+
+			return true;
+		}
+
+		static bool CreateSpray( Asset asset, out string sprayLocation )
+		{
+			sprayLocation = $@"{asset.path}/{asset.id}.spray";
+			var baseSpray = File.ReadAllText(@"templates/basespray.spray");
+			var baseSprayElement = File.ReadAllText(@"templates/basesprayelement.txt");
+			var elements = "";
+
+			if ( asset.geometry.Count == 0 )
+			{
+				return false;
+			}
+
+			for ( int i = 0; i < asset.geometry.Count; i++ )
+			{
+				var vmdlLocation = "";
+				if ( asset.geometry.Count == 1 )
+				{
+					vmdlLocation = $@"{asset.path}/{asset.id}.vmdl";
+				}
+				else
+				{
+					vmdlLocation = $@"{asset.path}/{asset.id}_var{i + 1}.vmdl";
+				}
+				vmdlLocation = vmdlLocation.Replace( RunOptions.ProjectPath + "/", "" );
+
+				elements += baseSprayElement.Replace( "$VMDL", vmdlLocation );
+				elements += "\n";
+			}
+
+			var spray = baseSpray.Replace("$ELEMENTS", elements);
+			File.WriteAllText( sprayLocation, spray );
 
 			return true;
 		}
