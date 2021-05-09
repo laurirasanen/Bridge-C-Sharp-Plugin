@@ -72,6 +72,9 @@ namespace BridgeSource2Plugin
 			[Option( "decal-shader", Required = false, Default = "vr_projected_decals.vfx", HelpText = "The shader used for decals and atlases" )]
 			public string DecalShader { get; set; }
 
+			[Option( "parallax-shader", Required = false, Default = "vr_parallax_occlusion.vfx", HelpText = "The shader used for 3d assets with parallax" )]
+			public string ParallaxShader { get; set; }
+
 			[Option( "debug", Required = false, Default = false, HelpText = "Print asset info and don't export" )]
 			public bool Debug { get; set; }
 
@@ -443,19 +446,13 @@ namespace BridgeSource2Plugin
 			Directory.CreateDirectory( vmatLocation );
 			vmatLocation += $"/{asset.id}.vmat";
 
-			var shader = RunOptions.Shader;
-			if ( asset.type == "atlas" )
-			{
-				shader = RunOptions.DecalShader;
-			}
-			var vmatString = $"shader \"{shader}\"\n";
 			bool enableOpacity = false;
 			bool enableMetalness = false;
 			bool enableTransmission = false;
 			bool enableNormal = false;
+			bool enableParallax = false;
 
-			// Enable specular by default
-			vmatString += "F_SPECULAR 1\n";
+			var vmatString = "";
 
 			// Get all used textures
 			asset.textures.ForEach( texture =>
@@ -495,6 +492,11 @@ namespace BridgeSource2Plugin
 						enableTransmission = true;
 						break;
 
+					case "displacement":
+						textureType = "TextureHeight";
+						enableParallax = true;
+						break;
+
 					default:
 						if ( RunOptions.NoClean )
 						{
@@ -513,6 +515,25 @@ namespace BridgeSource2Plugin
 					vmatString += $"{textureType} \"{texture.path.Replace( RunOptions.ProjectPath + "/", "" ).Replace( '\\', '/' )}\"\n";
 				}
 			} );
+
+			var shader = RunOptions.Shader;
+			if ( asset.type == "atlas" )
+			{
+				shader = RunOptions.DecalShader;
+			}
+
+			if ( enableParallax )
+			{
+				shader = RunOptions.ParallaxShader;
+				vmatString += "g_flHeightMapScale \"0.020\"\n";
+				vmatString += "g_nLODThreshold \"4\"\n";
+				vmatString += "g_nMaxSamples \"32\"\n";
+				vmatString += "g_nMinSamples \"8\"\n";
+			}
+
+			vmatString += $"shader \"{shader}\"\n";
+			// Enable specular by default
+			vmatString += "F_SPECULAR 1\n";
 
 			if ( enableOpacity )
 			{
